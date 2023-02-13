@@ -21,8 +21,6 @@ async function getUsersWhere() {
   console.log(users);
 }
 
-getUsersWhere();
-
 async function getUsers() {
   try {
     // const users = await User.find({ name: 'Tadas', age: 26, createdAt: new Date('2000-10-04') }, { name: true, age: true });
@@ -45,17 +43,21 @@ async function updateUsers() {
   //     },
   //   }
   // );
-  const users = await User.updateMany(
-    { age: 26 },
-    {
-      address: {
-        street: 'Kauno',
-        number: '7B',
-      },
-    }
-  );
+  // const users = await User.updateMany(
+  //   { age: 26 },
+  //   {
+  //     address: {
+  //       street: 'Kauno',
+  //       number: '7B',
+  //     },
+  //   }
+  // );
+
+  const users = await User.updateMany({}, { age: undefined });
   console.log(users);
 }
+
+updateUsers();
 
 async function deleteUsers() {
   // const users = await User.findByIdAndDelete('63e51e3fa3f37087022a2aaa');
