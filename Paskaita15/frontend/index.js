@@ -1,17 +1,5 @@
 const main = document.querySelector('main');
 
-// {
-//   "totalPages": 2,
-//   "data": [
-//     {
-//       "id": 11,
-//       "description": "some random gum",
-//       "price": "1.1",
-//       "title": "Orbit gum"
-//     },
-//   ]
-// }
-
 async function getProducts(page) {
   const res = await fetch(`http://127.0.0.1:3000/products/pagination?page=${page}&size=7`);
   const data = await res.json();

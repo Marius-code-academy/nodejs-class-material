@@ -1,8 +1,9 @@
 import express from 'express';
 import { getAllProducts, createNewProduct, getProductById, updateProductById, deleteProductById, routeNotFound, getProductsPaginate } from '../controllers/controller.js';
+import { validateQuery } from '../middleware/middleware.js';
 const router = express.Router();
 
-router.get('/products/pagination', getProductsPaginate)
+router.get('/products/pagination', validateQuery, getProductsPaginate)
 
 // Pasiimma visus produktus
 router.get('/products', getAllProducts)
