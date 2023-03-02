@@ -14,3 +14,13 @@ export async function createNewCustomer(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+export async function getAllCustomers(req, res) {
+  try {
+    const customers = await db.query('SELECT * FROM customers');
+
+    res.json(customers.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
