@@ -4,29 +4,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 const JSON_URI = process.env.JSON_URI;
 
-// {
-//   "userId": 1,
-//   "id": 1,
-//   "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
-//   "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
-// },
-
-// {
-//   "_id": "640766b14598b9be7338ddce",
-//   "userId": 9,
-//   "title": "My first post",
-//   "body": "body of my post",
-//   "__v": 0
-// },
-
 export async function getAllPosts(req, res) {
   try {
-    const mongoPosts = await Post.find({}, { __v: false });
+    const mongoRequest = Post.find({}, { __v: false });
+    const placeholderRequest = fetch(JSON_URI);
 
-    const resp = await fetch(JSON_URI);
-    const placeholderPosts = await resp.json();
+    const [mongoResponse, placeholderResponse] = await Promise.all([mongoRequest, placeholderRequest]);
 
-    const serializedMongoPosts = mongoPosts.map((post) => ({
+    const placeholderPosts = await placeholderResponse.json();
+
+    const serializedMongoPosts = mongoResponse.map((post) => ({
       id: post._id,
       userId: post.userId,
       title: post.title,
@@ -38,6 +25,113 @@ export async function getAllPosts(req, res) {
     res.status(500).json({
       error: error.message,
     });
+  }
+}
+
+export async function getPostWithTitle(req, res) {
+  try {
+    const mongoRequest = Post.find({}, { title: true, userId: true });
+    const placeholderRequest = fetch(JSON_URI);
+
+    const [mongoResponse, placeholderResponse] = await Promise.all([mongoRequest, placeholderRequest]);
+
+    const placeholderPosts = await placeholderResponse.json();
+
+    const combinedPosts = [...placeholderPosts, ...mongoResponse];
+
+    const serializedPosts = combinedPosts.map((post) => ({
+      title: post.title,
+      userId: post.userId,
+    }));
+
+    res.json(serializedPosts);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+}
+
+export async function getPostsWithBody(req, res) {
+  try {
+    const mongoRequest = Post.find({}, { body: true, userId: true, _id: true });
+    const placeholderRequest = fetch(JSON_URI);
+
+    const [mongoResponse, placeholderResponse] = await Promise.all([mongoRequest, placeholderRequest]);
+    const placeholderPosts = await placeholderResponse.json();
+
+    const combinedPosts = [...mongoResponse, ...placeholderPosts];
+    const serializedPosts = combinedPosts.map((post) => ({
+      body: post.body,
+      userId: post.userId,
+      id: post.id,
+    }));
+
+    // const serializedMongoPosts = mongoResponse.map((post) => ({
+    //   id: post._id,
+    //   body: post.body,
+    //   userId: post.userId,
+    // }));
+
+    // const serializedPlaceholderPosts = placeholderPosts.map((post) => {
+    //   const { title, ...rest } = post;
+    //   return rest;
+    // });
+
+    // res.json([...serializedMongoPosts, ...serializedPlaceholderPosts]);
+    res.json(serializedPosts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getPostById(req, res) {
+  try {
+    const { id } = req.params;
+
+    const placeholderRes = await fetch(JSON_URI + `/${id}`);
+    const placeholderPost = await placeholderRes.json();
+
+    if (Object.keys(placeholderPost).length === 0) {
+      if (id.length === 24) {
+        const mongoPost = await Post.findById(id);
+        if (mongoPost === null) {
+          res.status(404).json({ message: `no post found for ${id}` });
+        } else {
+          res.json(mongoPost);
+        }
+      } else {
+        res.status(404).json({ message: `no post found for ${id}` });
+      }
+    } else {
+      res.json(placeholderPost);
+    }
+
+    // if (id.length === 24) {
+    //   const mongoPost = await Post.findById(id);
+
+    //   if (mongoPost === null) {
+    //     const placeholderRes = await fetch(JSON_URI + `/${id}`);
+    //     const placeholderPost = await placeholderRes.json();
+
+    //     if (Object.keys(placeholderPost).length === 0) {
+    //       return res.status(404).json({ message: `No post found for ${id}` });
+    //     }
+    //     res.json(placeholderPost);
+    //   } else {
+    //     res.json(mongoPost);
+    //   }
+    // } else {
+    //   const placeholderRes = await fetch(JSON_URI + `/${id}`);
+    //   const placeholderPost = await placeholderRes.json();
+
+    //   if (Object.keys(placeholderPost).length === 0) {
+    //     return res.status(404).json({ message: `No post found for ${id}` });
+    //   }
+    //   res.json(placeholderPost);
+    // }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 }
 
